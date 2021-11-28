@@ -12,7 +12,8 @@ stages:
   condition: |
     and(
       ne(variables['Build.SourceBranch'], 'refs/heads/releases'),
-      not(startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+      not(startsWith(variables['Build.SourceBranch'], 'refs/tags/v')),
+      not(startsWith(variables['Build.SourceBranch'], 'refs/heads/v*.*'))
     )
   jobs:
   - job: onPushJob
@@ -66,7 +67,7 @@ stages:
 
 - stage: onTag
   condition: |
-    startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+    startsWith(variables['Build.SourceBranch'], 'refs/heads/v*.*')
   jobs:
   - job: onTagJob
     pool:
@@ -93,8 +94,8 @@ stages:
         displayName: 'Install dependencies'
 
       - script: |
-          echo "Checking out the tag branch"
-          databricks repos update --path /Repos/Staging/databricks-nutter-projects-demo --tag "$(Build.SourceBranchName)"
+          echo "Checking out the versioned branch"
+          databricks repos update --path /Repos/Staging/databricks-nutter-projects-demo --branch "$(Build.SourceBranchName)"
         env:
           DATABRICKS_HOST: $(DATABRICKS_HOST)
           DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
@@ -106,7 +107,7 @@ stages:
         env:
           DATABRICKS_HOST: $(DATABRICKS_HOST)
           DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
-        displayName: 'Execute Nutter tests on tag'
+        displayName: 'Execute Nutter tests on versioned branch'
 
       - task: PublishTestResults@2
         condition: succeededOrFailed()
