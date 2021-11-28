@@ -66,7 +66,7 @@ stages:
 
 - stage: onTag
   condition: |
-    startsWith(variables['Build.SourceBranch'], 'refs/tags/v*')
+    startsWith(variables['Build.SourceBranch'], 'refs/tags/')
   jobs:
   - job: onTagJob
     pool:
