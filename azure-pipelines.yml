@@ -1,30 +1,11 @@
-# Grab variables from the specific variable group
-variables:
-- group: 'Nutter Testing'
-
 trigger:
   batch: true
   branches:
     include:
     - '*'
-  paths:
-    exclude:
-      - README.md
-      - images
-#  tags:
-#    include:
-#      - v*.*
-#      - prod
-
-pr:
-  branches:
+  tags:
     include:
-      - master
-      - releases
-  paths:
-    exclude:
-      - README.md
-      - images
+      - v*.*
       
 stages:
 - stage: onPush
@@ -83,11 +64,11 @@ stages:
         testResultsFiles: '**/test-*.xml' 
         failTaskOnFailedTests: true
 
-- stage: onRelease
+- stage: onTag
   condition: |
-    eq(variables['Build.SourceBranch'], 'refs/heads/releases')
+    startsWith(variables['Build.SourceBranch'], 'refs/tags/')
   jobs:
-  - job: onReleaseJob
+  - job: onTagJob
     pool:
       vmImage: 'ubuntu-18.04'
 
@@ -112,20 +93,20 @@ stages:
         displayName: 'Install dependencies'
 
       - script: |
-          echo "Checking out the releases branch"
+          echo "Checking out the tag branch"
           databricks repos update --path /Repos/Staging/databricks-nutter-projects-demo --branch "$(Build.SourceBranchName)"
         env:
           DATABRICKS_HOST: $(DATABRICKS_HOST)
           DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
         displayName: 'Update Staging repository'
 
-# We can do a separate set of the tests for release branches
+      # We can do a separate set of the tests for release branches
       - script: |
           nutter run '/Repos/Staging/databricks-nutter-projects-demo/' --cluster_id $(CLUSTER_ID) --recursive --junit_report --timeout 500
         env:
           DATABRICKS_HOST: $(DATABRICKS_HOST)
           DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
-        displayName: 'Execute Nutter tests on release'
+        displayName: 'Execute Nutter tests on tag'
 
       - task: PublishTestResults@2
         condition: succeededOrFailed()
@@ -133,4 +114,3 @@ stages:
           testResultsFormat: 'JUnit'
           testResultsFiles: '**/test-*.xml' 
           failTaskOnFailedTests: true
-
