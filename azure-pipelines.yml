@@ -94,7 +94,7 @@ stages:
 
       - script: |
           echo "Checking out the tag branch"
-          databricks repos update --path /Repos/Staging/databricks-nutter-projects-demo --branch "$(Build.SourceBranchName)"
+          databricks repos update --path /Repos/Staging/databricks-nutter-projects-demo --tag "$(Build.SourceBranchName)"
         env:
           DATABRICKS_HOST: $(DATABRICKS_HOST)
           DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
